@@ -1,0 +1,53 @@
+﻿@page
+@model DirectoryModel
+@{
+    ViewData["Title"] = "Directory";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Your current list addresses.</p>
+
+<partial name="_NoAddresses.cshtml" />
+
+<table class="table table-hover d-none" id="addresses">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col" colspan="2">Name</th>
+      <th scope="col">Phone</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+@section scripts
+{
+    <script>
+        $(function () {
+            const dbName = 'address-book',
+                table = sessionStorage.getItem(dbName);
+
+            if (table) {
+                const tableAddresses = $('#addresses'),
+                    rows = JSON.parse(table);
+
+                if (rows && rows.length) {
+                    const tableRows = rows.map(( address, index) => {
+                      const { name, phone } = address;
+
+                      return (
+                        `<tr>
+                          <th scope="row">${index + 1}</th>
+                          <td colspan="2">${name}</td>
+                          <td>${phone}</td>
+                        </tr>`);
+                    });
+                    
+                    tableAddresses.append(tableRows).removeClass('d-none');
+                    $('#no-address').addClass('d-none');
+                }
+            }
+        });
+    </script>
+}

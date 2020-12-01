@@ -1,0 +1,96 @@
+@page
+@model SearchModel
+@{
+    ViewData["Title"] = "Search";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Search addresses.</p>
+
+<partial name="_NoAddresses.cshtml" />
+
+<div class="row g-3 form-controls">
+    <div class="col-sm-9 mb-3">
+        <input type="text" class="form-control search" id="search" placeholder="Search by name, full name or by phone number" required autofocus>
+    </div> 
+</div>
+<button class="w-25 btn btn-primary" type="button" id="find">Find</button>
+
+<p class="mt-4 d-none alert alert-info w-50 text-center" role="alert" id="not-found">Name or phone not found!</p>
+
+<table class="table table-hover d-none mt-4" id="addresses">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col" colspan="2">Name</th>
+      <th scope="col">Phone</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+@section scripts
+{
+    <script>
+        $(function () {
+            const dbName = 'address-book',
+                find = $('#find');
+            let table = sessionStorage.getItem(dbName);
+
+            if (table) {
+                const rows = JSON.parse(table);
+
+                if (rows && rows.length) {
+                    $('#no-address').addClass('d-none');   
+                }             
+            }
+
+            $(document).on('keypress',function(e) {
+                if(e.which == 13) {
+                    find.trigger('click');
+                }
+            });
+
+            find.click(function (e) {
+                const keyword = $('#search').val().trim().toLowerCase();
+
+                if (!keyword.length) return;
+
+                table = sessionStorage.getItem(dbName);
+                const tableAddresses = $('#addresses'),
+                    rows = JSON.parse(table),
+                    notFound = $('#not-found');
+
+                if (rows && rows.length) {
+                    const result = rows.filter( ({ name, phone }) => {
+                        return name.toLowerCase().indexOf(keyword) >= 0 || phone === keyword;
+                    });
+                    
+                    if (result && result.length) {
+                        const tableRows = result.map(( address, index) => {
+                            const { name, phone } = address;
+
+                            return (
+                                `<tr>
+                                <th scope="row">${index + 1}</th>
+                                <td colspan="2">${name}</td>
+                                <td>${phone}</td>
+                                </tr>`
+                            );
+                        });
+
+                        tableAddresses
+                            .empty()
+                            .append(tableRows)
+                            .removeClass('d-none');
+                        notFound.addClass('d-none');
+                    } else {
+                        tableAddresses.addClass('d-none');
+                        notFound.removeClass('d-none');
+                    }                   
+                }
+            });            
+        });
+    </script>
+}
